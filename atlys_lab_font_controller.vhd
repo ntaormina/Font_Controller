@@ -64,7 +64,7 @@ COMPONENT character_gen
 		signal row_connector, column_connector : unsigned(10 downto 0);
 	
 	signal red_sig, green_sig, blue_sig : std_logic_vector(7 downto 0);
-	signal enable_connector, pixel_clk, serialize_clk, serialize_clk_n, h_sync_sig, v_sync_sig, v_completed, blank_sig, red_s, green_s, blue_s, clock_s:std_logic;
+	signal h_sync_sig_1, v_sync_sig_1, blank_sig_1, enable_connector, pixel_clk, serialize_clk, serialize_clk_n, h_sync_sig, h_sync_sig_2, v_sync_sig, v_sync_sig_2, v_completed, blank_sig, blank_sig_2, red_s, green_s, blue_s, clock_s:std_logic;
 
 begin
 
@@ -100,7 +100,7 @@ begin
 
 	Inst_character_gen: character_gen PORT MAP(
 		clk => pixel_clk,
-		blank => blank_sig,
+		blank => blank_sig_2,
 		reset => reset,
 		row => std_logic_vector(row_connector),
 		column => std_logic_vector(column_connector),
@@ -140,9 +140,9 @@ begin
                 red_p     => red_sig,
                 green_p   => green_sig,
                 blue_p    => blue_sig,
-                blank     => blank_sig,
-                hsync     => h_sync_sig,
-                vsync     => v_sync_sig,
+                blank     => blank_sig_2,
+                hsync     => h_sync_sig_2,
+                vsync     => v_sync_sig_2,
                 -- outputs to TMDS drivers
                 red_s     => red_s,
                 green_s   => green_s,
@@ -159,6 +159,25 @@ begin
         ( O  => TMDS(2), OB => TMDSB(2), I  => red_s   );
     OBUFDS_clock : OBUFDS port map
         ( O  => TMDS(3), OB => TMDSB(3), I  => clock_s );
+		  
+	process(pixel_clk)
+		begin
+			if(rising_edge(pixel_clk)) then
+				blank_sig_1 <= blank_sig;
+				h_sync_sig_1 <= h_sync_sig;
+				v_sync_sig_1 <= v_sync_sig;
+			end if;
+		end process;
+		
+		process(pixel_clk)
+		begin
+			if(rising_edge(pixel_clk)) then
+				blank_sig_2 <= blank_sig_1;
+				h_sync_sig_2 <= h_sync_sig_1;
+				v_sync_sig_2 <= v_sync_sig_1;
+			end if;
+		end process;
+
 
 
 	

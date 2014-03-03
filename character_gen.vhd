@@ -43,8 +43,8 @@ COMPONENT font_rom
 		);
 	END COMPONENT;
 
-signal sel : std_logic_vector(2 downto 0);
-signal row_sig : std_logic_vector(3 downto 0);
+signal sel, column_sig_1, column_sig_2 : std_logic_vector(2 downto 0);
+signal row_sig_1, row_sig_2 : std_logic_vector(3 downto 0);
 signal font_connector : std_logic_vector(10 downto 0);
 signal output : std_logic;
 signal data_from_font, b_data_signal : std_logic_vector(7 downto 0);
@@ -53,49 +53,47 @@ signal address_b_signal : std_logic_vector(13 downto 0);
 
 begin
 
-sel <= column(2 downto 0);
+	sel <= column_sig_2(2 downto 0);
 
-process(column, sel, clk)
-begin
+	process(sel, data_from_font)
+	begin
 
-	case sel is
-		when"000"=>
-			output <= data_from_font(7);
+		case sel is
+			when"000"=>
+				output <= data_from_font(7);
 
-		when"001"=>
-			output <= data_from_font(6);
+			when"001"=>
+				output <= data_from_font(6);
 
-		when"010"=>
-			output <= data_from_font(5);
-			
-		when"011"=>
-			output <= data_from_font(4);
-			
-		when"100"=>
-			output <= data_from_font(3);
-			
-		when"101"=>
-			output <= data_from_font(2);
-			
-		when"110"=>
-			output <= data_from_font(1);
-			
-		when"111"=>
-			output <= data_from_font(0);
-			
-		when others=>
-			
-	end case;
-end process;
+			when"010"=>
+				output <= data_from_font(5);
+				
+			when"011"=>
+				output <= data_from_font(4);
+				
+			when"100"=>
+				output <= data_from_font(3);
+				
+			when"101"=>
+				output <= data_from_font(2);
+				
+			when"110"=>
+				output <= data_from_font(1);
+				
+			when others=>
+				output <= data_from_font(0);
+				
+		end case;
+	end process;
 
-r <= (others=>'1') when output = '1' else
-		(others=>'0');
-		
-g<= (others=>'0');		
-b<= (others=>'0');
+	r <= (others=>'1') when output = '1' else
+			(others=>'0');
+			
+	g<= (others=>'0');		
+	b<= (others=>'0');
 
-font_connector <= b_data_signal(6 downto 0) & row_sig;
-row_sig <= row(3 downto 0);
+	font_connector <= b_data_signal(6 downto 0) & row_sig_1;
+	
 
 	Inst_font_rom: font_rom PORT MAP(
 		clk => clk,
@@ -113,15 +111,30 @@ row_sig <= row(3 downto 0);
 		data_out_b => b_data_signal
 	);
 
-address_b_signal <= std_logic_vector(((unsigned(column(10 downto 3))) + unsigned(row(10 downto 4)) * 80));
-address_b_12_bit <= address_b_signal(11 downto 0);
+	address_b_signal <= std_logic_vector(((unsigned(column(10 downto 3))) + unsigned(row(10 downto 4)) * 80));
+	address_b_12_bit <= address_b_signal(11 downto 0);
 
-counter_helper <= (others => '0') when reset = '1' else
-						counter;
+	counter_helper <= (others => '0') when reset = '1' else
+							counter;
 
-counter <= std_logic_vector(unsigned(counter_helper) + 1) when rising_edge(write_en) else
-			  counter_helper;				
+	counter <= std_logic_vector(unsigned(counter_helper) + 1) when rising_edge(write_en) else
+				  counter_helper;				
+				  
+	process(clk)
+		begin
+			if(rising_edge(clk)) then
+				row_sig_1 <= row(3 downto 0);	
+				column_sig_1 <= column(2 downto 0);	
+			end if;
+		end process;
+
+	process(clk)
+		begin
+			if(rising_edge(clk)) then				
+				column_sig_2 <= column_sig_1(2 downto 0);	
+			end if;
+		end process;		
+		
 
 
 end Behavioral;
-
