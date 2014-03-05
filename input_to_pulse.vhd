@@ -51,7 +51,7 @@ case button_reg is
 			button_next <= press;
 		end if;	
 	when press =>
-		if( input = '0') then 
+		if(count > 55000 and input = '0') then 
 			button_next <= depress;
 		end if;	
 	when depress =>
@@ -66,11 +66,11 @@ begin
 --sets signal to one when button is released
 case button_reg is
 	when waiting =>
-		button_next_sig <= '0';
+		button_next_sig <= '1';
 	when press =>
 		button_next_sig <= '0';
 	when depress =>
-		button_next_sig <= '1';
+		button_next_sig <= '0';
 end case;
 
 end process;	
